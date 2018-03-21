@@ -1,9 +1,13 @@
-//$("#symb").click();
+$(document).ready(function() {
+  $("#symb").click();
+});
 
+//
 //global variables
 var symbol;
 var aiSymbol;
 var winningSymbol;
+//default difficulty of easy
 var difficulty = "easy";
 var turn = 0;
 var usedIndexs = [];
@@ -11,9 +15,7 @@ var truthy = false;
 
 //user vs ai
 var userIndexValues = [];
-var userTotalCurrentWins = 0;
 var aiIndexValues = [];
-var aiTotalCurrentWins = 0;
 
 //x 
 var xIndexValues = [];
@@ -37,9 +39,8 @@ var wins = [
 
 //functions
 function addIcon(cell) {
-  console.log("cell was clicked by user"); 
+  difficultySelection();
   turn++;
-  console.log("addIcon turn "+turn+"----------");
   //if nothing in the cell
   if (cell.innerHTML !== "X" && cell.innerHTML !== "O") {      
     //place current symbol
@@ -48,37 +49,33 @@ function addIcon(cell) {
   //val is the index of the box (1-9, top left to bottom right)
   var val = $(cell).data('value');
   //if current symbol is X
-  if (symbol == "X") { 
-    //make sure val can only be added once to list of total boxes filled
-    if (!usedIndexs.includes(val) && !xIndexValues.includes(val)) {
-      //populate array with current val
-      usedIndexs.push(val);
-      xIndexValues.push(val);
-      userIndexValues.push(val);
-    } 
-  //if symbol == "O"
-  } else {
-    if (!usedIndexs.includes(val) && !oIndexValues.includes(val)) {
-      usedIndexs.push(val);
-      oIndexValues.push(val);
-      userIndexValues.push(val);
+
+  //make sure val can only be added once to list of total boxes filled
+  if (!usedIndexs.includes(val)) {
+    if (symbol == "X") {
+        //populate array with current val
+        usedIndexs.push(val);
+        xIndexValues.push(val);
+        userIndexValues.push(val);
     }
-  } 
+    if (symbol == "O") { 
+        usedIndexs.push(val);
+        oIndexValues.push(val);
+        userIndexValues.push(val);
+    }   
+  }
+  
   if (winCondition()) {
     console.log("user win");
   } else {
-    // if (difficulty === "hard") {
-    //   //aiMakeGreatChoice();
-    // } else if (difficulty === "medium") {
-    //   //aiMakeGoodChoice();
-    // } else if (difficulty === "easy") {
-      //testing aiMakeGreatChoice()
-      //aiMakeGreatChoice();
+     if (difficulty === "hard") {
+       aiMakeGreatChoice();
+     } else if (difficulty === "medium") {
+       aiMakeGoodChoice();
+     } else if (difficulty === "easy") {
       aiChooseRandomSpot();
-      //aiMakeGoodChoice();
-    //}
+    }
   }
-  
 } //end addIcon
 
 //win condition
@@ -91,15 +88,14 @@ function winCondition() {
     //join numbers into a string 
     var numbers = wins[i].join("");
 
-    //for each number in X or O arrays
+    //for each number in X or O arrays, only check if at least 3 values
     if (xIndexValues.length > 2) {
       for (var j = 0; j < xIndexValues.length; j++) {
         if (numbers.indexOf(xIndexValues[j]) > -1) {
           xCount++;
         }
       }
-    }
-    
+    }   
     if (oIndexValues.length > 2) {
       for (var t = 0; t < oIndexValues.length; t++) {
         if (numbers.indexOf(oIndexValues[t]) > -1) {
@@ -107,6 +103,7 @@ function winCondition() {
         }
       }
     }
+    
     if (xCount >= 3) {   
       xTotalCurrentWins++;
       //keep track of winning symbol
@@ -123,7 +120,12 @@ function winCondition() {
       updateScore();
       preventGameplay();
       return true;
-    }  
+    //if neither symbol wins, declare a draw
+    }  else if (usedIndexs.length == 9 && (xCount < 3 && oCount <3)) {
+      $(".gameWinner").text("Draw!");
+      $("#scoreText").text("X -- "+xTotalCurrentWins+" : "+oTotalCurrentWins+" -- O");
+      preventGameplay();
+    }
   }
   return false;  
 }
@@ -150,6 +152,7 @@ function newGame() {
   $("#modal-text").text("Choose your symbol");
   $("#input-field").css("background-color","white");
   //make boxes clickable again
+  preventGameplay();
   resetClickProperty();   
   //prompt to choose symbol again 
   $("#symb").click();
@@ -208,10 +211,17 @@ function resetClickProperty() {
   });
 }
 
-//ai controls including:
+
 //difficulty options
-function aiDifficulty() {
-  
+function difficultySelection() {
+  var choice = $('input[name=difficulty]:checked').val();
+  if (choice === "hard") {
+    difficulty = "hard";
+  } else if (choice === "medium") {
+    difficulty = "medium";
+  } else {
+    difficulty = "easy";
+  }
 }
 //give ai symbol that isnt being used
 function aiChooseSymbol() {
@@ -229,7 +239,7 @@ function aiChooseRandomSpot() {
   //get random int between 1 and 9
   var rando = getRandomInt(9);
   //if that index hasnt been used yet
-  if (!usedIndexs.includes(rando) && !aiIndexValues.includes(rando)) {
+  if (!usedIndexs.includes(rando)) {
     //add aiSymbol to cell randomly chosen
     $("div[data-value="+rando.toString()+"]").text(aiSymbol);
     //add to usedIndexs and aiIndexs
@@ -241,9 +251,8 @@ function aiChooseRandomSpot() {
     } else {
       xIndexValues.push(rando);
     }
-    
   //if random cell was already chosen, just call function again until an open cell is selected
-  } else {
+  } else if (turn < 6) {
     aiChooseRandomSpot();
   } 
   if (winCondition()) {
@@ -278,140 +287,138 @@ function aiMakeGreatChoice() {
         xIndexValues.push(5);
       }
     //if user chose middle cell
-    } else {     
+    } else {
       aiChooseRandomSpot();
     }
   //anything past 1st turn
-  } else {
+  } else if (turn > 1 && turn < 6) {
     truthy = false;
     //go through all winning possibilities first
     if (truthy === false) {
       cellToWin(1,2,3);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(1,3,2);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(3,2,1);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(1,4,7);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(1,7,4);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(1,5,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(1,9,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(2,5,8);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(2,8,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(3,6,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(3,9,6);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(3,5,7);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(3,7,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(4,5,6);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(4,6,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(5,6,4);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(7,8,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(7,9,8);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToWin(8,9,7);
     }
     //then look to block if no winning moves    
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,2,3);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,3,2);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(3,2,1);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,4,7);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,7,4);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,5,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(1,9,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(2,5,8);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(2,8,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(3,6,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(3,9,6);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(3,5,7);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(3,7,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(4,5,6);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(4,6,5);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(5,6,4);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(7,8,9);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(7,9,8);
     }
-    else if (truthy === false) {
+    if (truthy === false) {
       cellToBlock(8,9,7);
     }    
-    // if (truthy === false) {
-    //   aiChooseRandomSpot();
-    // }
+
     //if the random spot chosen was already used, call it again to get something different
-    if (aiIndexValues.length < 2) {
-      console.log("calling chooseRandomSpot in makeGreatChoice on turn 2");
-      console.log("this is supposed to happen when the 2nd click has happened");
+    if (aiIndexValues.length < turn && usedIndexs.length != 9) {
       aiChooseRandomSpot();
     }
     if (winCondition()) {
       console.log("ai wins");
     }
+  } else {
+    //console.log("this means its past turn 5 which is impossible");
   }
   
 }
@@ -419,8 +426,7 @@ function aiMakeGreatChoice() {
 //based on cell1 and cell2 locations, block cell to prevent win by user
 function cellToBlock(cell1, cell2, cellBlock) {
   //if user has 2 cells lined up where a third can win the game
-  //and index has not been used by AI or user
-  
+  //and index has not been used by AI or user  
   if ((userIndexValues.includes(cell1) && userIndexValues.includes(cell2)) &&
       !usedIndexs.includes(cellBlock) && !aiIndexValues.includes(cellBlock)) {
     //set that cell to aiSymbol
@@ -436,16 +442,18 @@ function cellToBlock(cell1, cell2, cellBlock) {
 //ai to look for winning move
 function cellToWin(cell1, cell2, winningCell) { 
   if ((aiIndexValues.includes(cell1) && aiIndexValues.includes(cell2)) &&
-      !usedIndexs.includes(winningCell) && !aiIndexValues.includes(winningCell)) {
+      !usedIndexs.includes(winningCell) && !userIndexValues.includes(winningCell)) {
     $("div[data-value="+winningCell.toString()+"]").text(aiSymbol);
     //push to arrays for tracking
     usedIndexs.push(winningCell);
     aiIndexValues.push(winningCell);
     addToProperArray(aiSymbol, winningCell);
+    //this is used to prevent this function from being called several times in 1 turn
     truthy = true;
   }
 }
       
+//add symbol to the right array for tracking
 function addToProperArray(symbol, value) {
   if (symbol === "X") {
     xIndexValues.push(value);
@@ -453,6 +461,7 @@ function addToProperArray(symbol, value) {
     oIndexValues.push(value);
   }
 }
+//function to get a random integer between 1 and max
 function getRandomInt(max) {
   return (Math.floor(Math.random() * Math.floor(max))) + 1;
 }
