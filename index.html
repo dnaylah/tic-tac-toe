@@ -1,0 +1,56 @@
+<!DOCTYPE html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="main.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="modal-text">Choose your symbol</p>     
+            <input id="input-field" type="text" name="symbol" placeholder="X or O" autofocus >
+            <input id="saveButton" onclick="inputStuff()" type="submit" >
+          </div>   
+        </div> <!-- end modal -->
+        
+        <div class="wrapper">
+          <h3 class="gameWinner"></h3>
+          <div class="gameboard">
+                <div onclick="addIcon(this)" id="top-left" data-value="1">           
+                </div>
+                <div onclick="addIcon(this)" id="top-mid" class="leftright" data-value="2">           
+                </div>
+                <div onclick="addIcon(this)" id="top-right" data-value="3">        
+                </div>
+                <div onclick="addIcon(this)" id="mid-left" class="updown" data-value="4">           
+                </div>
+                <div onclick="addIcon(this)" id="mid-mid" class="middle" data-value="5">            
+                </div>
+                <div onclick="addIcon(this)" id="mid-right" class="updown"data-value="6" >          
+                </div>
+                <div onclick="addIcon(this)" id="bot-left"data-value="7" >         
+                </div>
+                <div onclick="addIcon(this)" id="bot-mid" class="leftright" data-value="8">      
+                </div>
+                <div onclick="addIcon(this)" id="bot-right" data-value="9">           
+                </div>
+            </div> <!-- end gameboard -->
+          <div class="scoreboard">
+            <p id="scoreText"></p>
+          </div>
+          
+          <!-- buttons -->
+          <div class="button text-center">
+            <button onclick="newGame()">New Game</button>
+            <button onclick="endGame()">End Game</button>
+            <button id="symb" onclick="selectSymbol()">Symbol</button>
+          </div>
+        </div> <!-- end wrapper -->
+      </div>
+</bod>
